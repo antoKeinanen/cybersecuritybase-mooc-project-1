@@ -1,31 +1,16 @@
 from django.shortcuts import render, redirect
 from django import db
 from .models import User, Post
+from argon2 import PasswordHasher
+
+hasher = PasswordHasher()
 
 
 def signup(request):
     username = request.GET.get("username")
     password = request.GET.get("password")
-    """
-    Vulnerability 2: A03:2021 - Injection
-    CWE-89 Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')
+    password = hasher.hash(password)
 
-    User input is not properly sanitized. This leads to sql injection attack,
-    where attacker can execute sql queries on server.
-
-    Fix: Properly sanitize the input by replacing quotes with their relative escape sequences \' and \".
-    Fix: Alternatively use the provided sql object relation mapper that sanitizes strings automatically.
-
-    ---
-
-    Vulnerability 3: A02:2021 - Cryptographic failures
-    CWE-261 Weak Encoding for Password
-
-    Password is stored in plaintext. Combined with the sql injection above attackers
-    could access all the passwords in the database.
-
-    Fix: properly hash, salt and pepper the password with a secure hashing algorithm like argon2id
-    """
     cursor = db.connection.cursor()
     cursor.execute(
         "INSERT INTO pages_user (username, password) VALUES (%s, %s);",
@@ -53,18 +38,11 @@ def signup(request):
 def signin(request):
     username = request.GET.get("username")
     password = request.GET.get("password")
-    """
-    Vulnerability 2: A03:2021 - Injection
-    CWE-89 Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')
-    User input is not properly sanitized. This leads to sql injection attack,
-    where attacker can execute sql queries on server.
-    Fix: Properly sanitize the input by replacing quotes with their relative escape sequences \' and \".
-    Fix: Alternatively use the provided sql object relation mapper that sanitizes strings automatically.
-    """
+
     cursor = db.connection.cursor()
     cursor.execute(
-        "SELECT * FROM pages_user WHERE username=%s AND password=%s",
-        (username, password),
+        "SELECT * FROM pages_user WHERE username=%s",
+        (username,),
     )
     user = cursor.fetchone()
     if user:
@@ -80,10 +58,13 @@ def signin(request):
         Fix: instead of basic authentication use bearer authentication with tokens
         Fix: configure the cookie with secure=True and httponly=True
         """
-        id, username, password = user
+        id, username, hash = user
+        if not hasher.verify(hash, password):
+            return redirect("/signin")
+
         resp.set_cookie(
             "authentication",
-            f"basic {username}:{password}",
+            f"basic {username}:{hash}",
             httponly=False,
             secure=False,
         )
