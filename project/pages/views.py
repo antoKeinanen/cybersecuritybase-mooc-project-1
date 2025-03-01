@@ -77,16 +77,11 @@ def signupView(request):
 def post(request):
     message = request.GET.get("message")
     auth = request.COOKIES["authentication"]
-    auth = auth.split(" ")[1]
-    username = auth.split(":")[0]
-    user = User.objects.get(username=username)
-    """
-    Vulnerability 5: A07:2021 - Identification and Authentication Failures 
-    CWE-306 Missing Authentication for Critical Function
+    token = auth.split(" ")[1]
 
-    When posting password is not validated. This allows attackers to impersonate users just by sending the username.
+    user = User.objects.get(token=token)
+    if not user:
+        return redirect("/")
 
-    Fix: When querying the user also match for password. Also check if user exists before creating post object.
-    """
     Post.objects.create(user=user, content=message)
     return redirect("/")
