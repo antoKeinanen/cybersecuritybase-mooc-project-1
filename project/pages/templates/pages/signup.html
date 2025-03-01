@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/tailwindcss@3.4.17/src/css/preflight.css"
+    />
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}" />
+    <title>Chirper</title>
+  </head>
+  <body>
+    <div class="main-container">
+      <nav>
+        <h1 class="logo">Chirper™</h1>
+      </nav>
+      <main class="content-container">
+        <h1 class="heading">Sign up</h1>
+        <form action="/auth/signup" method="get">
+          <input
+            type="text"
+            name="username"
+            id="username"
+            placeholder="Username"
+            class="input"
+          />
+          <input
+            type="password"
+            name="password"
+            id="password"
+            placeholder="Password"
+            class="input"
+          />
+          <input type="submit" value="Sign up" class="button" />
+        </form>
+      </main>
+    </div>
+  </body>
+</html>
