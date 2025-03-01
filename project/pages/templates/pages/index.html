@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/tailwindcss@3.4.17/src/css/preflight.css"
+    />
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}" />
+    <title>Chirper</title>
+  </head>
+  <body>
+    <div class="main-container">
+      <nav>
+        <h1 class="logo">Chirper™</h1>
+      </nav>
+      <main class="content-container">
+        <form method="GET" action="/post">
+          <input
+            type="text"
+            name="message"
+            id="message"
+            placeholder="Tell us what's happening?!"
+            autofocus
+          />
+        </form>
+        <section class="posts">
+          {% for post in posts%}
+          <div class="post">
+            <!--
+             Vulnerability 1: A03:2021-Injection
+             Messages aren't properly sanitized. This leads to XSS attacks.
+             Fix: change the line below to be '{{post}}' instead of '{{post | safe}}'.
+             -->
+            <p class="post-content">{{post | safe}}</p>
+          </div>
+          {%endfor%}
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

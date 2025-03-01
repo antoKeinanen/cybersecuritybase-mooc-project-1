@@ -18,5 +18,5 @@ from django.urls import path, include
 from django.contrib.auth.views import LoginView, LogoutView
 
 urlpatterns = [
-	path('', include('project.pages.urls'))
+	path('', include('project.pages.urls'), name="pages")
 ]
