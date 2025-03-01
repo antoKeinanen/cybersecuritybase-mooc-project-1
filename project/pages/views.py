@@ -28,7 +28,8 @@ def signup(request):
     """
     cursor = db.connection.cursor()
     cursor.execute(
-        f"INSERT INTO pages_user (username, password) VALUES ('{username}', '{password}');"
+        "INSERT INTO pages_user (username, password) VALUES (%s, %s);",
+        (username, password),
     )
 
     resp = redirect("/")
@@ -62,7 +63,8 @@ def signin(request):
     """
     cursor = db.connection.cursor()
     cursor.execute(
-        f"SELECT * FROM pages_user WHERE username='{username}' AND password='{password}'"
+        "SELECT * FROM pages_user WHERE username=%s AND password=%s",
+        (username, password),
     )
     user = cursor.fetchone()
     if user:
