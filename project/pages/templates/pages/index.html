@@ -18,6 +18,7 @@
       </nav>
       <main class="content-container">
         <form method="GET" action="/post">
+          {% csrf_token %}
           <input
             type="text"
             name="message"
@@ -35,8 +36,10 @@
              CWE-80 Improper Neutralization of Script-Related HTML Tags in a Web Page (Basic XSS)
              Messages aren't properly sanitized. This leads to XSS attacks.
              Fix: change the line below to be '{{post}}' instead of '{{post | safe}}'.
+             
+             FIXED
              -->
-            <p class="post-content">{{post.content | safe}}</p>
+            <p class="post-content">{{post.content}}</p>
           </div>
           {%endfor%}
         </section>
