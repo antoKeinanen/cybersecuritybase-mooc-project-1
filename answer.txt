@@ -1,0 +1,98 @@
+LINK: https://github.com/antoKeinanen/cybersecuritybase-mooc-project-1/tree/main
+
+Installation guide:
+==================
+
+1. Clone the repo with:
+git clone git@github.com:antoKeinanen/cybersecuritybase-mooc-project-1
+or if you don't have an ssh key configured with:
+https://github.com/antoKeinanen/cybersecuritybase-mooc-project-1.git
+
+2. Install the required dependencies:
+Windows:
+pip install Django
+Linux:
+pip-3 install Django
+
+3. Run the migrations:
+Windows:
+python manage.py migrate
+Linux:
+python3 manage.py migrate
+
+4. Start the server:
+Windows:
+python manage.py runserver
+Linux:
+python3 manage.py runserver
+
+5. Open the page http://127.0.0.1:8000/ in your browser of choice.
+
+
+Usage guide:
+==================
+
+Creating users: Open http://127.0.0.1:8000/singup in your browser. Note that there should not be any trailing slashes.
+
+Changing user: Open http://127.0.0.1:8000/singin in your browser. Note that there should not be any trailing slashes.
+
+Posting messages: Open http://127.0.0.1:8000 write your message and press enter on your keyboard.
+
+
+Flaws:
+==================
+
+1. A03:2021-Injection
+- CWE-80 Improper Neutralization of Script-Related HTML Tags in a Web Page (Basic XSS)
+
+Link: https://github.com/antoKeinanen/cybersecuritybase-mooc-project-1/blob/main/project/pages/templates/pages/index.html#L39
+
+When a user posts a new message, the message content is not properly sanitized, allowing attackers to perform Cross-Site Scripting (XSS) attacks. This vulnerability occurs because user input is processed as JavaScript code and executed on the victim's machine. To demonstrate this flaw, an attacker can post `<script>alert(1)</script>`, which will trigger a popup displaying '1' for anyone who loads the page. This issue can be mitigated by removing the `safe` filter from `{{ post.content | safe }}` and using `{{ post.content }}` instead, which ensures that the content is properly escaped and not executed as code.
+
+---
+
+2. Vulnerability 2: A03:2021 - Injection
+- CWE-89 Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')
+
+Link: https://github.com/antoKeinanen/cybersecuritybase-mooc-project-1/blob/main/project/pages/views.py#L31
+Link: https://github.com/antoKeinanen/cybersecuritybase-mooc-project-1/blob/main/project/pages/views.py#L64
+
+In the login and sign-up API endpoints, user-submitted credentials are not properly sanitized. This vulnerability allows attackers to execute arbitrary SQL commands on the server, leading to SQL Injection attacks. Although the attacker can only modify the end of the query and cannot add additional queries, this flaw is still significant. To demonstrate this vulnerability, an attacker can input `<username>' --` into the username field on the `/signin` page. This exploit allows the attacker to bypass authentication and obtain the password for any user. To mitigate this issue, user inputs should be properly sanitized and parameterized queries should be used to prevent SQL Injection. The easiest way to do this is to use the SQL client's provided value insertion instead of f-strings.
+
+---
+
+3. A02:2021 - Cryptographic failures
+- CWE-261 Weak Encoding for Password
+
+Link https://github.com/antoKeinanen/cybersecuritybase-mooc-project-1/blob/main/project/pages/views.py#L31
+
+The application stores passwords in plaintext in the database, which is a significant security risk. If an attacker gains access to the database, either through a direct connection or an SQL injection vulnerability, they can easily retrieve and exploit these passwords. To mitigate this risk, passwords should be hashed using a strong hashing algorithm such as Argon2id before being stored. Additionally, each password should be salted with a unique value to prevent the use of precomputed rainbow tables for cracking the hashes and to ensure that identical passwords do not produce the same hash. For added security passwords may also be peppered by appending a constant secret value to the password before hashing.
+
+---
+
+4. A05:2021 - Security Misconfiguration
+- CWE-315 Cleartext Storage of Sensitive Information in a Cookie
+- CWE-614 Sensitive Cookie in HTTPS Session Without 'Secure' Attribute
+- CWE-1004 Sensitive Cookie Without 'HttpOnly' Flag
+
+Link: https://github.com/antoKeinanen/cybersecuritybase-mooc-project-1/blob/main/project/pages/views.py#L47
+Link: https://github.com/antoKeinanen/cybersecuritybase-mooc-project-1/blob/main/project/pages/views.py#L82-L87
+
+This flaw consists of three combined issues related to cookie security:
+
+1. Cleartext Storage of Sensitive Information in a Cookie: The password is stored in plaintext within the cookie. An attacker who gains access to the cookie can easily compromise the victim's account.
+
+2. Sensitive Cookie Without 'HttpOnly' Flag: The cookie is accessible to client-side scripts because the HttpOnly flag is not set. This makes it vulnerable to theft via Cross-Site Scripting (XSS) attacks.
+
+3. Sensitive Cookie in HTTPS Session Without 'Secure' Attribute: The cookie is transmitted over unencrypted connections because the Secure flag is not set. This may expose the cookie to interception by attackers on the network.
+
+To mitigate these issues, the application should use tokens instead of storing plaintext passwords in cookies. Additionally, the HttpOnly and Secure flags should be set on the cookie to prevent access by client-side scripts and ensure it is only transmitted over secure connections.
+
+---
+
+5. A07:2021 - Identification and Authentication Failures
+- CWE-306 Missing Authentication for Critical Function
+
+Link https://github.com/antoKeinanen/cybersecuritybase-mooc-project-1/blob/main/project/pages/views.py#L116
+
+The application does not properly authenticate users when they create a new post. This vulnerability occurs because the server does not validate the user's password when retrieving the User object from the database. An attacker can exploit this flaw by spoofing the cookie, which has the format `basic <username>:<password>`. By altering the username in the cookie, the attacker can post messages as any user without knowing their actual password. To mitigate this issue, the server should validate both the username and password when retrieving the User object to ensure that the user is properly authenticated before allowing them to create a post.
