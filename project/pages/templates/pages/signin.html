@@ -19,6 +19,7 @@
       <main class="content-container">
         <h1 class="heading">Sign In</h1>
         <form action="/auth/signin" method="get">
+          {% csrf_token %}
           <input
             type="text"
             name="username"
