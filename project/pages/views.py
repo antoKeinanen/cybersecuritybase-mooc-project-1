@@ -30,6 +30,7 @@ def signup(request):
     cursor.execute(
         f"INSERT INTO pages_user (username, password) VALUES ('{username}', '{password}');"
     )
+
     resp = redirect("/")
     """
     Vulnerability 4: A05:2021 - Security Misconfiguration
@@ -77,6 +78,7 @@ def signin(request):
         Fix: instead of basic authentication use bearer authentication with tokens
         Fix: configure the cookie with secure=True and httponly=True
         """
+        id, username, password = user
         resp.set_cookie(
             "authentication",
             f"basic {username}:{password}",
